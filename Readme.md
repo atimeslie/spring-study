@@ -8,16 +8,21 @@
  * 1、包扫描+组件标注注解（@Component、@Service、@Controller、@Repository，主要是自己写的类
  * 2、@Bean[导入的第三方包里面的组件]
  * 3、@Import[快速给容器中导入一个组件]
- *          1、Import(类名),容器中就会自动注册这个组件，id默认是组件的全名
+ *          1、Import(类名.class),容器中就会自动注册这个组件，id默认是组件的全名(可以导入多个，逗号分隔开)
  *          2、ImportSelector：返回需要导入的组件的全类名的数组
  *          3、ImportBeanDefinitionRegistrar：手动注册bean
- * 4、使用Spring提供的FactoryBean（工厂bean）
+ * 4、使用Spring提供的FactoryBean（工厂bean,参考代码中ColorFactoryBean类，和）
  *          1、默认获取到的是工厂bean调用getObject创建的对象
  *          2、要获取到bean本身，需要给id前面加个&标识
  * @Conditional({Condition}):按照一定的条件判断，满足条件给容器中注册bean
- * @Scope
+ * @Scope	//具体使用方式看代码
  * prototype:多例的 ioc容器启动并不会去调用方法创建对象在容器中，而是每次获取时才会调用方法创建对象
  * singleton:单例的（默认值） ioc容器启动会调用方法创建对象放到ioc容器中，以后每次获取就是从容器中拿
+ * request：同一次请求创建一个实例
+ * session：同一个session创建一个实例
+ * 懒加载：
+ * 		单实例bean：默认在容器启动的时候创建对象；
+ * 		懒加载：容器启动不创建对象。第一次使用(获取)Bean创建对象，并初始化；
  */
 ```
 
@@ -37,6 +42,19 @@ FilterType.ASSIGNABLE_TYPE:按照指定的类型
 FilterType.REGEX:使用正则指定
 
 FilterType.CUSTOM:使用自定义规则
+```
+```java
+//例子：
+@ComponentScans(
+		value = {
+				@ComponentScan(value="com.atguigu",includeFilters = {
+/*						@Filter(type=FilterType.ANNOTATION,classes={Controller.class}),
+						@Filter(type=FilterType.ASSIGNABLE_TYPE,classes={BookService.class}),*/
+						@Filter(type=FilterType.CUSTOM,classes={MyTypeFilter.class})
+				},useDefaultFilters = false)	
+		}
+		)
+--
 ```
 
 
@@ -93,7 +111,19 @@ FilterType.CUSTOM:使用自定义规则
 //1、基本数值
 //2、可以写SpEL;#{}
 //3、可以写${}取出配置文件【properties】的值（在运行环境变量里面的值）
-//使用@PropertySource读取外部配置文件中的k/v保存到运行的环境变量中;加载完外部的配置文件后使用${}取出配置文件的值
+//使用@PropertySource加载或读取外部配置文件中的k/v保存到运行的环境变量中;加载完外部的配置文件后使用${}取出配置文件的值
+	@PropertySource(value={"classpath:/person.properties"})
+```
+```java
+//例子：
+@Value("张三")
+	private String name;
+	@Value("#{20-2}")
+	private Integer age;
+	
+	@Value("${person.nickName}")
+	private String nickName;
+```
 ```
 
 ## 自动装配
@@ -106,24 +136,58 @@ FilterType.CUSTOM:使用自定义规则
  *          1、默认按照类型去容器中找对应的组件    applicationContext.getBean(BookService.class)，找到就赋值
  *          2、如果找到相同类型的组件，再将属性的名称作为组件的id去容器中查找      applicationContext.getBean("bookDao")
  *          3、@Qualifier("bookDao")：使用该注解来指定需要装配的组件的id，而不是使用属性名
- *          4、自动装配默认一定要将属性赋值好，没有就会报错，可通过在Autowire的注解中将required=false来使该配置设置为非必需
+ */
+ ```java
+ //例子
+ 	//@Qualifier("bookDao")
+	//@Autowired(required=false)
+	//@Resource(name="bookDao2")
+	@Inject
+	private BookDao bookDao;
+ ```
+ /*          4、自动装配默认一定要将属性赋值好，没有就会报错，可通过在Autowire的注解中将required=false来使该配置设置为非必需（该配置不存在也  *不报错）
  *          5、@Primary：让Spring进行自动装配的时候，默认使用首选的bean,也可以继续使用@Qualifier来指定需要装配的bean
+ *	@Primary
+ *	@Bean("bookDao2")
+ *	public BookDao bookDao(){
+ *		BookDao bookDao = new BookDao();
+ *		bookDao.setLable("2");
+ *		return bookDao;
+ *	}
  *          BookService{
  *              @Autowired
  *              BookDao bookDao;
  *          }
  *      2、Spring还支持使用@Resource（JSR250）和@Inject（JSR330）【java规范】
  *          1、@Resource：
- *              可以和@Autowired一样实现自动装配功能；默认是按照组件名称进行装配的；没有能支持					@Primary的功能以及@Autowired（required=false）的功能
+ *              可以和@Autowired一样实现自动装配功能；默认是按照组件名称进行装配的；没有能支持					
+ *		@Primary的功能以及@Autowired（required=false）的功能
  *          2、@Inject（需要导入依赖）：
  *              导入javax.inject的包，和Autowired的功能一样，没有required=false的功能
  *
  *      AutowiredAnnotationBeanPostProcessor：解析完成自动装配功能
  *
  *      3、@Autowired：构造器，参数，方法，属性
- *        1）标注在方法位置  	标注在方法，Spring容器创建当前对象，就会调用方法，完成赋值，方法使用							  的参数，自定义类型的值从ioc容器中获取,@Bean标注的方法创建对象的时								     候，方法参数的值默认从ioc容器中获取，默认不写Autowired，效果是一样的
- *        2）标注在构造器位置   默认加在ioc容器中的组件，容器启动会调用无参构造器创建对象，再进行初始								 化赋值等操作。标注在构造器上可以默认调用该方法，方法中用的参数同样从								 ioc容器中获取，如果容器只有一个有参构造器，这个有参构造器的Autowired							  可以省略，参数位置的组件还是可以自动从容器中获取
- *        3）标注在参数位置     从ioc容器中获取参数组件的值
+ *        1）标注在方法位置标注在方法，Spring容器创建当前对象，就会调用方法，完成赋值，方法使用							  的参数，自定义类型的值从ioc容器中获取,@Bean标注的方法创建对象的时								     	  候，方法参数的值默认从ioc容器中获取，默认不写Autowired，效果是一样的
+				@Autowired 
+				//标注在方法，Spring容器创建当前对象，就会调用方法，完成赋值；
+				//方法使用的参数，自定义类型的值从ioc容器中获取
+				public void setCar(Car car) {
+					this.car = car;
+				}
+ *        2）标注在构造器位置：默认加在ioc容器中的组件，容器启动会调用无参构造器创建对象，再进行初始								 化赋值等操作。标注在构造器上可以默认调用该方法，方法中用的参数同样从															  可以省略，参数位置的组件还是可以自动从容器中获取
+				@Autowired
+				//构造器要用的组件，都是从容器中获取
+				public Boss(Car car){
+					this.car = car;
+					System.out.println("Boss...有参构造器");
+				}
+ *        3）标注在参数位置：从ioc容器中获取参数组件的值，如果容器只有一个有参构造器，这个有参构造器的Autowired
+				//构造器要用的组件，都是从容器中获取
+				public Boss(@Autowired Car car){
+					this.car = car;
+					System.out.println("Boss...有参构造器");
+				}
  
  *      4、自定义组件想要使用Spring容器底层的一些组件（ApplicationContext，BeanFactory，xxx）;
  *           自定义组件需要实现xxxAware接口；在创建对象的时候会调用接口规定的方法注入相关组件；
