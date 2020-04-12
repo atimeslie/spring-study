@@ -224,6 +224,98 @@ FilterType.CUSTOM:使用自定义规则
  *          4、启动刷新容器，applicationContext.refresh();
  */
 ~~~
+```java
+	//例子
+	@PropertySource("classpath:/dbconfig.properties")
+@Configuration
+public class MainConfigOfProfile implements EmbeddedValueResolverAware{
+	
+	@Value("${db.user}")
+	private String user;
+	
+	private StringValueResolver valueResolver;
+	
+	private String  driverClass;
+	
+	
+	@Bean
+	public Yellow yellow(){
+		return new Yellow();
+	}
+	
+	@Profile("test")
+	@Bean("testDataSource")
+	public DataSource dataSourceTest(@Value("${db.password}")String pwd) throws Exception{
+		ComboPooledDataSource dataSource = new ComboPooledDataSource();
+		dataSource.setUser(user);
+		dataSource.setPassword(pwd);
+		dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/test");
+		dataSource.setDriverClass(driverClass);
+		return dataSource;
+	}
+	
+	
+	@Profile("dev")
+	@Bean("devDataSource")
+	public DataSource dataSourceDev(@Value("${db.password}")String pwd) throws Exception{
+		ComboPooledDataSource dataSource = new ComboPooledDataSource();
+		dataSource.setUser(user);
+		dataSource.setPassword(pwd);
+		dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/ssm_crud");
+		dataSource.setDriverClass(driverClass);
+		return dataSource;
+	}
+	
+	@Profile("prod")
+	@Bean("prodDataSource")
+	public DataSource dataSourceProd(@Value("${db.password}")String pwd) throws Exception{
+		ComboPooledDataSource dataSource = new ComboPooledDataSource();
+		dataSource.setUser(user);
+		dataSource.setPassword(pwd);
+		dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/scw_0515");
+		
+		dataSource.setDriverClass(driverClass);
+		return dataSource;
+	}
+
+	@Override
+	public void setEmbeddedValueResolver(StringValueResolver resolver) {
+		// TODO Auto-generated method stub
+		this.valueResolver = resolver;
+		driverClass = valueResolver.resolveStringValue("${db.driverClass}");
+	}
+
+}
+	//测试
+	public class IOCTest_Profile {
+	
+	//1、使用命令行动态参数: 在虚拟机参数位置加载 -Dspring.profiles.active=test
+	//2、代码的方式激活某种环境；
+	@Test
+	public void test01(){
+		AnnotationConfigApplicationContext applicationContext = 
+				new AnnotationConfigApplicationContext();
+		//1、创建一个applicationContext
+		//2、设置需要激活的环境
+		applicationContext.getEnvironment().setActiveProfiles("dev");
+		//3、注册主配置类
+		applicationContext.register(MainConfigOfProfile.class);
+		//4、启动刷新容器
+		applicationContext.refresh();
+		
+		
+		String[] namesForType = applicationContext.getBeanNamesForType(DataSource.class);
+		for (String string : namesForType) {
+			System.out.println(string);
+		}
+		
+		Yellow bean = applicationContext.getBean(Yellow.class);
+		System.out.println(bean);
+		applicationContext.close();
+	}
+
+}
+```
 
 ## AOP
 
