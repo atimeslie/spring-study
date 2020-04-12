@@ -168,27 +168,30 @@ FilterType.CUSTOM:使用自定义规则
  *      AutowiredAnnotationBeanPostProcessor：解析完成自动装配功能
  *
  *      3、@Autowired：构造器，参数，方法，属性
- *        1）标注在方法位置标注在方法，Spring容器创建当前对象，就会调用方法，完成赋值，方法使用							  的参数，自定义类型的值从ioc容器中获取,@Bean标注的方法创建对象的时								     	  候，方法参数的值默认从ioc容器中获取，默认不写Autowired，效果是一样的
-				@Autowired 
-				//标注在方法，Spring容器创建当前对象，就会调用方法，完成赋值；
-				//方法使用的参数，自定义类型的值从ioc容器中获取
-				public void setCar(Car car) {
-					this.car = car;
-				}
- *        2）标注在构造器位置：默认加在ioc容器中的组件，容器启动会调用无参构造器创建对象，再进行初始								 化赋值等操作。标注在构造器上可以默认调用该方法，方法中用的参数同样从															  可以省略，参数位置的组件还是可以自动从容器中获取
-				@Autowired
-				//构造器要用的组件，都是从容器中获取
-				public Boss(Car car){
-					this.car = car;
-					System.out.println("Boss...有参构造器");
-				}
+ *        1）标注在方法位置标注在方法，Spring容器创建当前对象，就会调用方法，完成赋值，方法使用					 
+ *		  的参数，自定义类型的值从ioc容器中获取,@Bean标注的方法创建对象的时							
+ *	     	  候，方法参数的值默认从ioc容器中获取，默认不写Autowired，效果是一样的					
+ *				@Autowired 											  
+ *				//标注在方法，Spring容器创建当前对象，就会调用方法，完成赋值；
+ *				//方法使用的参数，自定义类型的值从ioc容器中获取
+ *				public void setCar(Car car) {
+ *					this.car = car;
+ *				}
+ *        2）标注在构造器位置：默认加在ioc容器中的组件，容器启动会调用无参构造器创建对象，再进行初始					 
+ *		 化赋值等操作。标注在构造器上可以默认调用该方法，方法中用的参数同样从可以省略，参数位置的组件还是可以自动从容器中获取
+ *				@Autowired
+ *				//构造器要用的组件，都是从容器中获取
+ *				public Boss(Car car){
+ *					this.car = car;
+ *					System.out.println("Boss...有参构造器");
+ *				}
  *        3）标注在参数位置：从ioc容器中获取参数组件的值，如果容器只有一个有参构造器，这个有参构造器的Autowired
-				//构造器要用的组件，都是从容器中获取
-				public Boss(@Autowired Car car){
-					this.car = car;
-					System.out.println("Boss...有参构造器");
-				}
- 
+ *				//构造器要用的组件，都是从容器中获取
+ *				public Boss(@Autowired Car car){
+ *					this.car = car;
+ *					System.out.println("Boss...有参构造器");
+ *				}
+ *
  *      4、自定义组件想要使用Spring容器底层的一些组件（ApplicationContext，BeanFactory，xxx）;
  *           自定义组件需要实现xxxAware接口；在创建对象的时候会调用接口规定的方法注入相关组件；
  *           把Spring底层的一些组件注入到自定义的bean中
