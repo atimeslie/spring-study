@@ -145,7 +145,8 @@ FilterType.CUSTOM:使用自定义规则
 	@Inject
 	private BookDao bookDao;
  ```
- /*          4、自动装配默认一定要将属性赋值好，没有就会报错，可通过在Autowire的注解中将required=false来使该配置设置为非必需（该配置不存在也  *不报错）
+ ```
+ /*          4、自动装配默认一定要将属性赋值好，没有就会报错，可通过在Autowire的注解中将required=false来使该配置设置为非必需（该配置不存在也   *不报错）
  *          5、@Primary：让Spring进行自动装配的时候，默认使用首选的bean,也可以继续使用@Qualifier来指定需要装配的bean
  *	@Primary
  *	@Bean("bookDao2")
