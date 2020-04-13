@@ -390,16 +390,33 @@ public class LogAspects {
 		System.out.println(""+joinPoint.getSignature().getName()+"异常。。。异常信息：{"+exception+"}");
 	}
 
-	//目标方法：
-	public class MathCalculator {
-	
-	public int div(int i,int j){
-		System.out.println("MathCalculator...div...");
-		return i/j;	
-	}
+}
+	//目标和业务逻辑类
+		public class MathCalculator {
 
-}
-}
+		public int div(int i,int j){
+			System.out.println("MathCalculator...div...");
+			return i/j;	
+		}
+
+	}
+	//将切面类和目标和业务逻辑类（目标方法所在类）都加入到容器中；
+	@EnableAspectJAutoProxy//【开启基于注解的aop模式】
+	@Configuration
+	public class MainConfigOfAOP {
+
+		//业务逻辑类加入容器中
+		@Bean
+		public MathCalculator calculator(){
+			return new MathCalculator();
+		}
+
+		//切面类加入到容器中
+		@Bean
+		public LogAspects logAspects(){
+			return new LogAspects();
+		}
+	}
 
 ```
 
