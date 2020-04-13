@@ -628,6 +628,23 @@ proceed方法的过程
 
 }
 
+	//service
+	@Service
+	public class UserService {
+	
+	@Autowired
+	private UserDao userDao;
+	
+	@Transactional
+	public void insertUser(){
+		userDao.insert();
+		//otherDao.other();xxx
+		System.out.println("插入完成...");
+		int i = 10/0;
+	}
+
+}
+
 ```
 
 
@@ -704,6 +721,19 @@ proceed方法的过程
  *
  */
 ~~~
+```java
+	@Service
+	public class UserService {
+	
+	@EventListener(classes={ApplicationEvent.class})
+	public void listen(ApplicationEvent event){
+		System.out.println("UserService。。监听到的事件："+event);
+	}
+
+}
+
+
+```
 
 ## Spring容器的创建过程
 
