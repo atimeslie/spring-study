@@ -326,14 +326,14 @@ public class MainConfigOfProfile implements EmbeddedValueResolverAware{
  * AOP:【动态代理】
  *      指在程序运行期间动态的将某段代码切入到指定方法指定位置进行运行的编程模式
  *  1、导入aop模块
- *  2、定义一个业务逻辑类（MathCalculator），在业务逻辑运行的时候将日志进行打印（方法之前，方法运行结	   束，方法出现异常等）
- *  3、定义一个日志切面类（LogAspect），切面类里面的方法需要动态感知MathCalculator.div运行到哪里，然		 后执行
+ *  2、定义一个业务逻辑类（MathCalculator），在业务逻辑运行的时候将日志进行打印（方法之前，方法运行结束，方法出现异常等）
+ *  3、定义一个日志切面类（LogAspect），切面类里面的方法需要动态感知MathCalculator.div运行到哪里，然后执行
  *      通知方法：
- *              前置通知(@Before)：logStart:在目标方法（div）运行之前运行 参数列表传入joinPoint可				获取到方法的相关属性,且该参数必须放在第一个参数，否则无法识别
+ *              前置通知(@Before)：logStart:在目标方法（div）运行之前运行 参数列表传入joinPoint可获取到方法的相关属性,且该参数必须放在第一个参数，否则无法识别
  
  *              后置通知(@After)：logEnd：在目标方法（div）运行之后运行,无论方法正常结束还是异常结束
  *              
- 				返回通知(@AfterReturning(returning可以指定封装返回值的参数）)：logReturn：在目标				  方法（div）正常返回之后运行
+ 		返回通知(@AfterReturning(returning可以指定封装返回值的参数）)：logReturn：在目标方法（div）正常返回之后运行
  				
  *              异常通知(@AfterThrowing)：logException：在目标方法（div）出现异常以后运行
  *              环绕通知(@Around)：动态代理，手动推进目标方法运行（joinPoint.proceed())
@@ -349,6 +349,59 @@ public class MainConfigOfProfile implements EmbeddedValueResolverAware{
  *      3、开启基于注解的aop模式@EnableAspectJAutoProxy
  */
 ~~~
+```java
+	//AOP例子：
+	/**
+ * 切面类
+ * @author lfy
+ * 
+ * @Aspect： 告诉Spring当前类是一个切面类
+ *
+ */
+@Aspect
+public class LogAspects {
+	
+	//抽取公共的切入点表达式
+	//1、本类引用
+	//2、其他的切面引用
+	@Pointcut("execution(public int com.atguigu.aop.MathCalculator.*(..))")
+	public void pointCut(){};
+	
+	//@Before在目标方法之前切入；切入点表达式（指定在哪个方法切入）
+	@Before("pointCut()")
+	public void logStart(JoinPoint joinPoint){
+		Object[] args = joinPoint.getArgs();
+		System.out.println(""+joinPoint.getSignature().getName()+"运行。。。@Before:参数列表是：{"+Arrays.asList(args)+"}");
+	}
+	
+	@After("com.atguigu.aop.LogAspects.pointCut()")
+	public void logEnd(JoinPoint joinPoint){
+		System.out.println(""+joinPoint.getSignature().getName()+"结束。。。@After");
+	}
+	
+	//JoinPoint一定要出现在参数表的第一位
+	@AfterReturning(value="pointCut()",returning="result")
+	public void logReturn(JoinPoint joinPoint,Object result){
+		System.out.println(""+joinPoint.getSignature().getName()+"正常返回。。。@AfterReturning:运行结果：{"+result+"}");
+	}
+	
+	@AfterThrowing(value="pointCut()",throwing="exception")
+	public void logException(JoinPoint joinPoint,Exception exception){
+		System.out.println(""+joinPoint.getSignature().getName()+"异常。。。异常信息：{"+exception+"}");
+	}
+
+	//目标方法：
+	public class MathCalculator {
+	
+	public int div(int i,int j){
+		System.out.println("MathCalculator...div...");
+		return i/j;	
+	}
+
+}
+}
+
+```
 
 ### AOP的原理
 
